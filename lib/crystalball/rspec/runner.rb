@@ -73,6 +73,7 @@ module Crystalball
         end
 
         def check_map
+          Crystalball.log :warn, 'Maps are updatable (different SHA)!' if prediction_builder.outdated_map?
           Crystalball.log :warn, 'Maps are outdated!' if prediction_builder.expired_map?
         end
       end

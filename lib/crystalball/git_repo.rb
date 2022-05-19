@@ -35,6 +35,10 @@ module Crystalball
       repo.respond_to?(method, false)
     end
 
+    def current_commit
+      repo.object('HEAD').sha
+    end
+
     # Creates diff
     #
     # @param [String] from starting commit to build a diff. Default: HEAD
