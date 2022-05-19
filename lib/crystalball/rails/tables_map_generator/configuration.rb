@@ -33,6 +33,36 @@ module Crystalball
         def object_sources_detector
           @object_sources_detector ||= ::Crystalball::MapGenerator::ObjectSourcesDetector.new(root_path: root_path)
         end
+
+        def repo_path
+          default = "."
+          @repo_path ||= Pathname.new(raw_value('repo_path') || default)
+        end
+
+        private
+
+        def values
+          @config ||= begin
+            config_src = if config_file
+              require 'yaml'
+              YAML.safe_load(config_file.read, permitted_classes: [Symbol])
+            else
+              {}
+            end
+
+            config_src
+          end
+        end
+
+        def config_file
+          file = Pathname.new(ENV.fetch('CRYSTALBALL_CONFIG', 'crystalball.yml'))
+          file = Pathname.new('config/crystalball.yml') unless file.exist?
+          file.exist? ? file : nil
+        end
+
+        def raw_value(key)
+          ENV.fetch("CRYSTALBALL_#{key.to_s.upcase}", values[key])
+        end
       end
     end
   end
