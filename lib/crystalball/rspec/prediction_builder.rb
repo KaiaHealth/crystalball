@@ -24,6 +24,10 @@ module Crystalball
         execution_map.timestamp.to_i <= Time.now.to_i - config['map_expiration_period']
       end
 
+      def outdated_map?
+        execution_map.commit != repo.current_commit
+      end
+
       def execution_map
         @execution_map ||= Crystalball::MapStorage::YAMLStorage.load(config['execution_map_path'])
       end

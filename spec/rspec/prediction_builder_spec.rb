@@ -72,5 +72,50 @@ describe Crystalball::RSpec::PredictionBuilder do
         end
       end
     end
+
+    context 'when expiration configuration is > 0', freeze: true do
+      let(:configuration) do
+        super().merge('map_expiration_period' => 10)
+      end
+
+      before { allow(map).to receive(:timestamp).and_return(timestamp) }
+
+      context 'when commit exists in the working tree' do
+        context 'and map commit is too old' do
+          let(:timestamp) { Time.now.to_i - 10 }
+
+          it { is_expected.to eq true }
+        end
+
+        context 'and map commit is fresh enough' do
+          let(:timestamp) { Time.now.to_i - 9 }
+
+          it { is_expected.to eq false }
+        end
+      end
+    end
+  end
+
+  describe '#outdated_map?' do
+    subject { builder.outdated_map? }
+
+    before do
+      allow(repo).to receive(:current_commit).and_return('abcdef')
+    end
+
+    context 'with map commit', freeze: true do
+      context 'when commit exists in the working tree' do
+        context 'and map commit is too old' do
+          before { allow(map).to receive(:commit).and_return('sha123456') }
+          it { is_expected.to eq true }
+        end
+
+        context 'and map commit is fresh enough' do
+          before { allow(map).to receive(:commit).and_return('abcdef') }
+
+          it { is_expected.to eq false }
+        end
+      end
+    end
   end
 end
