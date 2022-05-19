@@ -69,8 +69,36 @@ module Crystalball
     attr_accessor :started
 
     def repo
-      @repo = GitRepo.open('.') unless defined?(@repo)
+      @repo = GitRepo.open(repo_path) unless defined?(@repo)
       @repo
+    end
+
+    def repo_path
+      default = "."
+      @repo_path ||= Pathname.new(raw_value('repo_path') || default)
+    end
+
+    def values
+      @config ||= begin
+        config_src = if config_file
+          require 'yaml'
+          YAML.safe_load(config_file.read, permitted_classes: [Symbol])
+        else
+          {}
+        end
+
+        config_src
+      end
+    end
+
+    def config_file
+      file = Pathname.new(ENV.fetch('CRYSTALBALL_CONFIG', 'crystalball.yml'))
+      file = Pathname.new('config/crystalball.yml') unless file.exist?
+      file.exist? ? file : nil
+    end
+
+    def raw_value(key)
+      ENV.fetch("CRYSTALBALL_#{key.to_s.upcase}", values[key])
     end
 
     def check_dump_threshold
