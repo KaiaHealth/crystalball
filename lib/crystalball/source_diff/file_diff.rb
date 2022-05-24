@@ -27,7 +27,11 @@ module Crystalball
 
       # @return relative path to file
       def relative_path
-        git_diff.path
+        if File.exist?(git_diff.path)
+          git_diff.path
+        else
+          git_diff.path.split("/")[1..].join("/") # if we're in a monorepo setup, we need to remove the top level dir
+        end
       end
 
       # @return new relative path to file if file was moved
