@@ -19,7 +19,7 @@ describe Crystalball::MapGenerator::FactoryBotStrategy::DSLPatch do
     allow(Crystalball::MapGenerator::FactoryBotStrategy).to receive(:factory_bot_constant).and_return(FactoryBotConstant)
   end
 
-  dsl_klasses = %w[DSL ModifyDSL].map { |name| '::FactoryBotConstant::Syntax::Default::' + name }
+  dsl_klasses = %w[DSL ModifyDSL].map { |name| "::FactoryBotConstant::Syntax::Default::#{name}" }
 
   dsl_klasses.each do |dsl_klass|
     context "#{dsl_klass} patching" do

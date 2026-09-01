@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'set'
+require 'objspace'
 
 module Crystalball
   class MapGenerator
@@ -12,32 +12,38 @@ module Crystalball
         # @param [Array<Module>] only_of - classes or modules to watch on
         def initialize(only_of: ['Object'])
           @only_of = only_of
-          @created_object_classes = Set.new
         end
 
         # @yield a block to execute
         # @return [Array<Object>] classes of objects allocated during the block execution
         def used_classes_during(&block)
-          self.created_object_classes = Set.new
-          trace_point.enable(&block)
+          created_object_classes = Set.new
+          ObjectSpace.trace_object_allocations_start
+          GC.start
+          allocation_generation = GC.count
+          gc_was_disabled = GC.disable
+
+          yield
+
+          whitelisted_constants.each do |constant|
+            ObjectSpace.each_object(constant) do |object|
+              next unless ObjectSpace.allocation_generation(object) == allocation_generation
+              next if ObjectSpace.allocation_sourcefile(object) == __FILE__
+
+              created_object_classes << object.class
+            end
+          end
           created_object_classes
+        ensure
+          GC.enable unless gc_was_disabled
+          ObjectSpace.trace_object_allocations_stop
+          ObjectSpace.trace_object_allocations_clear
         end
 
         private
 
-        attr_accessor :created_object_classes
-
         def whitelisted_constants
           @whitelisted_constants ||= only_of.map { |str| Object.const_get(str) }
-        end
-
-        def trace_point
-          @trace_point ||= TracePoint.new(:c_call) do |tp|
-            next unless tp.method_id == :new || tp.method_id == :allocate
-            next unless whitelisted_constants.any? { |c| tp.self <= c }
-
-            created_object_classes << tp.self
-          end
         end
       end
     end

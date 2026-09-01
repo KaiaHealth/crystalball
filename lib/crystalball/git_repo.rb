@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'git'
+require 'crystalball/git_diff'
 require 'crystalball/source_diff'
 
 module Crystalball
@@ -36,7 +37,7 @@ module Crystalball
     end
 
     def current_commit
-      repo.object('HEAD').sha
+      repo.gcommit('HEAD').sha
     end
 
     # Creates diff
@@ -45,10 +46,16 @@ module Crystalball
     # @param [String] to ending commit to build a diff. Default: nil, will build diff of uncommitted changes
     # @return [SourceDiff]
     def diff(from = 'HEAD', to = nil)
-      SourceDiff.new(repo.diff(from, to))
+      SourceDiff.new(GitDiff.new(repo, from, to), relative_to: diff_root)
     end
 
     private
+
+    def diff_root
+      repository_root = repo.dir.expand_path
+      current_directory = Pathname.pwd
+      current_directory.to_s.start_with?("#{repository_root}/") ? current_directory : repository_root
+    end
 
     def repo
       @repo ||= Git.open(repo_path)

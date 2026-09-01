@@ -4,7 +4,7 @@ require 'spec_helper'
 
 describe Crystalball::Predictor::ModifiedSupportSpecs do
   subject(:predictor) { described_class.new }
-  let(:repository) { Git::Base.new }
+  let(:repository) { instance_double(Git::Repository, dir: Pathname.pwd) }
   let(:path1) { 'spec/support/some_shared_context.rb' }
   let(:file_diff1) { Crystalball::SourceDiff::FileDiff.new(Git::Diff::DiffFile.new(repository, path: path1)) }
   let(:diff) { [file_diff1] }

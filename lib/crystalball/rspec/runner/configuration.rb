@@ -7,7 +7,7 @@ module Crystalball
     class Runner
       # Class for storing local runner configuration
       class Configuration
-        def initialize(config = {}) # rubocop:disable Metrics/MethodLength
+        def initialize(config = {})
           @values = {
             'execution_map_path' => 'tmp/crystalball_data.yml',
             'map_expiration_period' => 86_400,

@@ -14,18 +14,18 @@ require_relative '../../../../lib/crystalball/map_generator/parser_strategy'
 
 # MAP_GENERATOR_CONFIG
 
-require_relative 'support/shared_examples/module1.rb'
-require_relative 'support/shared_contexts/action_view.rb'
-require_relative '../db/schema.rb'
-require_relative '../lib/locales.rb'
-require_relative '../lib/module1.rb'
-require_relative '../lib/class1.rb'
-require_relative '../lib/class1_reopen.rb'
-require_relative '../lib/class2.rb'
-require_relative '../lib/class2_eval.rb'
-require_relative '../lib/important_class.rb'
-require_relative '../models/model1.rb'
-require_relative '../models/model2.rb'
+require_relative 'support/shared_examples/module1'
+require_relative 'support/shared_contexts/action_view'
+require_relative '../db/schema'
+require_relative '../lib/locales'
+require_relative '../lib/module1'
+require_relative '../lib/class1'
+require_relative '../lib/class1_reopen'
+require_relative '../lib/class2'
+require_relative '../lib/class2_eval'
+require_relative '../lib/important_class'
+require_relative '../models/model1'
+require_relative '../models/model2'
 
 RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods

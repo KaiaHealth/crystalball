@@ -23,7 +23,7 @@ module Crystalball
             # Reverts original behavior of `ActionView::Template#compile!`
             def revert!
               ::ActionView::Template.class_eval do
-                alias_method :compile!, :cb_original_compile! # rubocop:disable Lint/DuplicateMethods
+                alias_method :compile!, :cb_original_compile!
                 undef_method :cb_patched_compile!
               end
             end

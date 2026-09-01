@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'tempfile'
+
 shared_context 'simple git repository' do
   let(:features_root) { Pathname(__dir__).join('..', '..', '..', 'features') }
   let(:fixtures_path) { features_root.join('fixtures') }
@@ -40,7 +42,14 @@ shared_context 'simple git repository' do
 
   def generate_map
     replace_spec_helper_config
-    system("cd #{root} && rspec spec > /dev/null")
+    Tempfile.create('crystalball-feature-output') do |output|
+      success = system(RbConfig.ruby, '-S', 'rspec', 'spec', chdir: root, out: output, err: %i[child out])
+      unless success
+        output.rewind
+        warn output.read
+      end
+      success
+    end
   end
 
   def change(file_path, content = '"changed"')
@@ -48,12 +57,12 @@ shared_context 'simple git repository' do
   end
 
   def delete(file_path)
-    git.lib.remove file_path
+    git.remove file_path
   end
 
   def move(file_path)
     move_path = file_path.dirname.join("moved_#{file_path.basename}")
-    git.lib.mv(file_path, move_path)
+    git.mv(file_path, move_path)
     move_path
   end
 

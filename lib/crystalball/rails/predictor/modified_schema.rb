@@ -64,9 +64,9 @@ module Crystalball
 
         def schema_content(repository, revision)
           if revision
-            repository.lib.show(revision, SCHEMA_PATH)
+            repository.show(revision, SCHEMA_PATH)
           else
-            File.read(File.join(repository.dir.path, SCHEMA_PATH))
+            File.read(File.join(repository.dir, SCHEMA_PATH))
           end
         end
 

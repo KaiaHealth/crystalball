@@ -82,7 +82,7 @@ The `ParserStrategy`, as the name suggests parses the files in order to detect w
 It works by first parsing all (`.rb`) files that match the given pattern under the configured root directory (defaults to current directory) to collect the constants definition paths.
 Then, when each example is executed, the used files of the current example group map are parsed to check for method calls to those constants. For that reason, `ParserStrategy` **only works when used with other strategies and is placed at the end of the strategies list**.
 
-To use it, add the `parser` gem to your `Gemfile` and:
+To use it:
 
 ```ruby
 require 'crystalball/map_generator/parser_strategy'
@@ -157,5 +157,4 @@ Crystalball::TablesMapGenerator.start! do |config|
   config.map_storage_path = 'my_custom_tables_map_name.yml'
 end
 ```
-
 

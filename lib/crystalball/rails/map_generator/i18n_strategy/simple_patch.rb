@@ -12,6 +12,8 @@ module Crystalball
           class << self
             # Patches `I18n::Backend::Simple`.
             def apply!
+              return if @patched
+
               ::I18n::Backend::Simple.class_eval do
                 include SimplePatch
 
@@ -20,16 +22,20 @@ module Crystalball
                   alias_method method, :"cb_patched_#{method}"
                 end
               end
+              @patched = true
             end
 
             # Reverts original behavior of `I18n::Backend::Simple`
             def revert!
+              return unless @patched
+
               ::I18n::Backend::Simple.class_eval do
                 %i[load_file store_translations lookup].each do |method|
                   alias_method method, :"cb_original_#{method}"
-                  undef_method :"cb_patched_#{method}"
+                  remove_method :"cb_original_#{method}"
                 end
               end
+              @patched = false
               ::I18n.reload!
             end
           end
@@ -44,8 +50,8 @@ module Crystalball
           # Will replace original `I18n::Backend::Simple#store_translations`.
           # Adds filename for each value
           def cb_patched_store_translations(locale, data, *args)
-            cb_add_filename_to_values(data, Thread.current[:cb_locale_file_name])
-            cb_original_store_translations(locale, data, *args)
+            data_with_filenames = cb_add_filename_to_values(data, Thread.current[:cb_locale_file_name])
+            cb_original_store_translations(locale, data_with_filenames, *args)
           end
 
           # Will replace original `I18n::Backend::Simple#lookup`.
@@ -58,15 +64,14 @@ module Crystalball
           private
 
           def cb_add_filename_to_values(data, filename)
-            data.each do |key, value|
-              case value
-              when Hash
-                next if value.frozen?
-
-                cb_add_filename_to_values(value, filename)
-              else
-                data[key] = {cb_filename: filename, cb_value: value}.freeze
-              end
+            data.each.with_object({}) do |(key, value), result|
+              result[key] = if value.is_a?(Hash) && value.key?(:cb_filename)
+                              value
+                            elsif value.is_a?(Hash)
+                              cb_add_filename_to_values(value, filename)
+                            else
+                              {cb_filename: filename, cb_value: value}.freeze
+                            end
             end
           end
 

@@ -46,26 +46,38 @@ describe Crystalball::GitRepo do
   end
 
   describe '#diff' do
-    let(:diff) { Git::Diff.new(repo) }
-    let(:repo) { Crystalball::GitRepo.new('.') }
+    let(:repository) { instance_double(Git::Repository, dir: Pathname('.')) }
+    let(:diff) { instance_double(Crystalball::GitDiff) }
     let(:expected_source_diff) { instance_double('Crystalball::SourceDiff') }
 
     specify do
-      allow_any_instance_of(Git::Base).to receive(:diff).and_return(diff)
-      allow(Crystalball::SourceDiff).to receive(:new).with(diff).and_return(expected_source_diff)
+      allow(Git).to receive(:open).and_return(repository)
+      allow(Crystalball::GitDiff).to receive(:new).with(repository, 'HEAD', nil).and_return(diff)
+      allow(Crystalball::SourceDiff).to receive(:new)
+        .with(diff, relative_to: Pathname.pwd)
+        .and_return(expected_source_diff)
+
       expect(subject.diff).to eq expected_source_diff
     end
   end
 
   describe '#method_missing' do
+    let(:repository) { instance_double(Git::Repository, current_branch: 'master') }
+
+    before { allow(Git).to receive(:open).and_return(repository) }
+
     it 'delegates to #repo' do
-      expect(subject.lib).to eq subject.instance_variable_get(:@repo).lib
+      expect(subject.current_branch).to eq 'master'
     end
   end
 
   describe '#respond_to?' do
+    let(:repository) { instance_double(Git::Repository, current_branch: 'master') }
+
+    before { allow(Git).to receive(:open).and_return(repository) }
+
     it 'includes method_missing' do
-      expect(subject.respond_to?(:lib)).to be_truthy
+      expect(subject.respond_to?(:current_branch)).to be_truthy
     end
   end
 end

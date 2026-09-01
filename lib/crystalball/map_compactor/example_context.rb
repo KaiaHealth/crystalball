@@ -18,7 +18,7 @@ module Crystalball
       end
 
       def include?(example_id)
-        example_id =~ /\[#{address}[\:\]]/
+        example_id =~ /\[#{address}[:\]]/
       end
 
       def depth

@@ -3,8 +3,8 @@
 require 'bundler/setup'
 require 'simplecov'
 SimpleCov.start
-SimpleCov.add_filter 'bundle/'
-SimpleCov.add_filter 'spec/support/shared_contexts/'
+SimpleCov.skip 'bundle/'
+SimpleCov.skip 'spec/support/shared_contexts/'
 
 Dir[Pathname(__dir__).join('support', '**', '*.rb')].each { |f| require f }
 

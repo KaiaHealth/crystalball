@@ -42,7 +42,7 @@ describe Crystalball::Rails::TablesMapGenerator do
     describe '.commit' do
       subject { configuration.commit }
       it 'is git repo HEAD by default' do
-        allow_any_instance_of(Git::Base).to receive(:object).with('HEAD').and_return(double(sha: 'abc'))
+        allow_any_instance_of(Git::Repository).to receive(:object).with('HEAD').and_return(double(sha: 'abc'))
         expect(subject).to eq 'abc'
       end
 
@@ -74,14 +74,14 @@ describe Crystalball::Rails::TablesMapGenerator do
       end
 
       it 'dump new map metadata to storage' do
-        expect(storage).to receive(:dump).with(type: map_class.to_s, commit: 'abc', version: 1.0)
+        expect(storage).to receive(:dump).with({type: map_class.to_s, commit: 'abc', version: 1.0})
         subject.start!
       end
     end
 
     describe '#map' do
       it 'sets proper commit SHA for the map' do
-        allow_any_instance_of(Git::Base).to receive(:object).with('HEAD').and_return(double(sha: 'abc'))
+        allow_any_instance_of(Git::Repository).to receive(:object).with('HEAD').and_return(double(sha: 'abc'))
 
         expect(subject.map.commit).to eq 'abc'
       end
@@ -101,7 +101,7 @@ describe Crystalball::Rails::TablesMapGenerator do
         end
 
         specify do
-          expect(storage).to receive(:dump).with('Dummy' => ['file1'])
+          expect(storage).to receive(:dump).with({'Dummy' => ['file1']})
           subject.finalize!
         end
       end

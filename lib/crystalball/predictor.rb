@@ -32,9 +32,9 @@ module Crystalball
 
     def diff
       @diff ||= begin
-                  ancestor = repo.merge_base(from, to || 'HEAD').sha
-                  repo.diff(ancestor, to)
-                end
+        ancestor = repo.merge_base(from, to || 'HEAD').first
+        repo.diff(ancestor, to)
+      end
     end
 
     private

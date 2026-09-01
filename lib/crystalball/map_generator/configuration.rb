@@ -7,8 +7,7 @@ module Crystalball
     # Configuration of map generator. Is can be accessed as a first argument inside
     # `Crystalball::MapGenerator.start! { |config| config } block.
     class Configuration
-      attr_writer :map_storage
-      attr_writer :map_class
+      attr_writer :map_storage, :map_class
       attr_accessor :commit, :version, :compact_map
 
       attr_reader :strategies

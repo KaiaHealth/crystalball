@@ -14,33 +14,34 @@ module Crystalball
     alias size count
 
     # @param [Git::Diff] git_diff raw diff made by ruby-git gem
-    def initialize(git_diff)
+    def initialize(git_diff, relative_to: nil)
       @git_diff = git_diff
+      @relative_to = relative_to
     end
 
     # Iterates over each changed file of diff
     #
-    def each
-      changeset.each { |file| yield file }
+    def each(&block)
+      changeset.each(&block)
     end
 
     def empty?
       changeset.none?
     end
 
-    # @return [Git::Base]
+    # @return [Git::Repository]
     def repository
       @repository ||= git_diff.instance_variable_get(:@base)
     end
 
     private
 
-    attr_reader :git_diff
+    attr_reader :git_diff, :relative_to
 
     # TODO: Include untracked to changeset
     def changeset
       @changeset ||= git_diff.map do |diff_file|
-        file_diff = FileDiff.new(diff_file)
+        file_diff = FileDiff.new(diff_file, relative_to: relative_to)
         file_diff unless FormattingChecker.pure_formatting?(file_diff)
       end.compact
     end

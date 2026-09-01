@@ -46,7 +46,7 @@ describe Crystalball::MapGenerator do
       let(:commit) { double }
 
       it 'is git repo HEAD by default' do
-        allow_any_instance_of(Git::Base).to receive(:gcommit).with('HEAD').and_return(commit)
+        allow_any_instance_of(Git::Repository).to receive(:gcommit).with('HEAD').and_return(commit)
         expect(subject).to eq commit
       end
 
@@ -87,7 +87,7 @@ describe Crystalball::MapGenerator do
       end
 
       it 'dump new map metadata to storage' do
-        expect(storage).to receive(:dump).with(type: map_class.to_s, commit: 'abc', timestamp: 1234, version: 1.0)
+        expect(storage).to receive(:dump).with({type: map_class.to_s, commit: 'abc', timestamp: 1234, version: 1.0})
         subject.start!
       end
 
@@ -99,7 +99,7 @@ describe Crystalball::MapGenerator do
 
     describe '#map' do
       it 'sets proper commit SHA for the map' do
-        allow_any_instance_of(Git::Base).to receive(:object).with('HEAD').and_return(double(sha: 'abc'))
+        allow_any_instance_of(Git::Repository).to receive(:object).with('HEAD').and_return(double(sha: 'abc'))
 
         expect(subject.map.commit).to eq 'abc'
       end
@@ -181,7 +181,7 @@ describe Crystalball::MapGenerator do
           allow(configuration.strategies).to receive(:run).with(kind_of(Crystalball::ExampleGroupMap), any_args)
                                                           .and_return(example_map('1'), example_map('2'), example_map('3'))
 
-          expect(storage).to receive(:dump).with('1' => [], '2' => []).once
+          expect(storage).to receive(:dump).with({'1' => [], '2' => []}).once
           expect_any_instance_of(map_class).to receive(:clear!).once.and_call_original
           subject.refresh_for_case(rspec_example('1'))
           subject.refresh_for_case(rspec_example('2'))

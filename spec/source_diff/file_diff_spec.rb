@@ -4,7 +4,8 @@ require 'spec_helper'
 
 describe Crystalball::SourceDiff::FileDiff do
   subject(:file_diff) { described_class.new(diff_file) }
-  let(:diff_file) { Git::Diff::DiffFile.new(Git::Base.new, type: type, path: 'lib/crystalball.rb') }
+  let(:repository) { instance_double(Git::Repository, dir: Pathname.pwd) }
+  let(:diff_file) { Git::Diff::DiffFile.new(repository, type: type, path: 'lib/crystalball.rb') }
   let(:type) {}
 
   %i[modified deleted new].each do |type|
@@ -27,7 +28,7 @@ describe Crystalball::SourceDiff::FileDiff do
     it { is_expected.to be_falsey }
 
     context 'with correct patch' do
-      let(:diff_file) { Git::Diff::DiffFile.new(Git::Base.new, type: 'modified', path: 'lib/crystalball.rb', patch: "rename from lib/crystalball.rb\nrename to lib/crystalball_new.rb") }
+      let(:diff_file) { Git::Diff::DiffFile.new(repository, type: 'modified', path: 'lib/crystalball.rb', patch: "rename from lib/crystalball.rb\nrename to lib/crystalball_new.rb") }
 
       it { is_expected.to be_truthy }
     end
@@ -36,6 +37,15 @@ describe Crystalball::SourceDiff::FileDiff do
   describe '#relative_path' do
     subject { file_diff.relative_path }
     it { is_expected.to eq('lib/crystalball.rb') }
+
+    context 'in a monorepo subdirectory' do
+      subject { described_class.new(diff_file, relative_to: Pathname('/repo/app')).relative_path }
+
+      let(:repository) { instance_double(Git::Repository, dir: Pathname('/repo')) }
+      let(:diff_file) { Git::Diff::DiffFile.new(repository, type: type, path: 'app/lib/crystalball.rb') }
+
+      it { is_expected.to eq('lib/crystalball.rb') }
+    end
   end
 
   describe '#new_relative_path' do
@@ -46,7 +56,7 @@ describe Crystalball::SourceDiff::FileDiff do
     end
 
     context 'when file moved' do
-      let(:diff_file) { Git::Diff::DiffFile.new(Git::Base.new, type: 'modified', path: 'lib/crystalball.rb', patch: "rename from lib/crystalball.rb\nrename to lib/crystalball_new.rb") }
+      let(:diff_file) { Git::Diff::DiffFile.new(repository, type: 'modified', path: 'lib/crystalball.rb', patch: "rename from lib/crystalball.rb\nrename to lib/crystalball_new.rb") }
 
       it { is_expected.to eq('lib/crystalball_new.rb') }
     end

@@ -26,7 +26,7 @@ module Crystalball
     end
 
     def output_stream
-      @output_stream ||= ::Logger.new(STDOUT).tap do |logger|
+      @output_stream ||= ::Logger.new($stdout).tap do |logger|
         logger.level = severity(configured_level)
       end
     end

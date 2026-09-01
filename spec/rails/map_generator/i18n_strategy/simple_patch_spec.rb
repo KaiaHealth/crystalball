@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 describe Crystalball::Rails::MapGenerator::I18nStrategy::SimplePatch do
-  subject(:instance) do
+  let(:instance) do
     Class.new do
       include Crystalball::Rails::MapGenerator::I18nStrategy::SimplePatch
 
@@ -27,11 +27,11 @@ describe Crystalball::Rails::MapGenerator::I18nStrategy::SimplePatch do
       stub_const(
         '::I18n::Backend::Simple',
         Class.new do
-          def load_file; end
+          def load_file(*); end
 
-          def store_translations; end
+          def store_translations(*); end
 
-          def lookup; end
+          def lookup(*); end
         end
       )
     end
@@ -48,6 +48,16 @@ describe Crystalball::Rails::MapGenerator::I18nStrategy::SimplePatch do
         expect(patched_class.instance_method(method)).to eq original_method
       end
     end
+
+    it 'can be applied more than once' do
+      described_class.apply!
+      described_class.apply!
+
+      expect { patched_class.new.load_file('locale.yml') }.not_to raise_error
+
+      expect(I18n).to receive(:reload!)
+      described_class.revert!
+    end
   end
 
   describe '#cb_patched_load_file' do
@@ -63,7 +73,6 @@ describe Crystalball::Rails::MapGenerator::I18nStrategy::SimplePatch do
   end
 
   describe '#cb_patched_store_translations' do
-    subject { instance.cb_patched_store_translations(locale, data) }
     let(:locale) { :en }
     let(:data) { {user: {name: 'John'}} }
     let(:filename) { 'locale/foo.yml' }
@@ -71,8 +80,8 @@ describe Crystalball::Rails::MapGenerator::I18nStrategy::SimplePatch do
     before { allow(Thread.current).to receive(:[]).with(:cb_locale_file_name) { filename } }
 
     it do
-      expect(instance).to receive(:cb_original_store_translations).with(locale, user: {name: {cb_filename: filename, cb_value: 'John'}})
-      subject
+      expect(instance).to receive(:cb_original_store_translations).with(locale, {user: {name: {cb_filename: filename, cb_value: 'John'}}})
+      instance.cb_patched_store_translations(locale, data)
     end
 
     context 'when data contains filenames' do
@@ -80,7 +89,7 @@ describe Crystalball::Rails::MapGenerator::I18nStrategy::SimplePatch do
 
       it do
         expect(instance).to receive(:cb_original_store_translations).with(locale, data)
-        subject
+        instance.cb_patched_store_translations(locale, data)
       end
     end
   end

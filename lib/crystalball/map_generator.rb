@@ -6,6 +6,7 @@ module Crystalball
     extend Forwardable
 
     attr_reader :configuration
+
     delegate %i[map_storage strategies dump_threshold map_class] => :configuration
 
     class << self
@@ -79,13 +80,13 @@ module Crystalball
     end
 
     def values
-      @config ||= begin
+      @values ||= begin
         config_src = if config_file
-          require 'yaml'
-          YAML.safe_load(config_file.read, permitted_classes: [Symbol])
-        else
-          {}
-        end
+                       require 'yaml'
+                       YAML.safe_load(config_file.read, permitted_classes: [Symbol])
+                     else
+                       {}
+                     end
 
         config_src
       end

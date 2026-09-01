@@ -8,6 +8,7 @@ ActiveRecord::Schema.define(version: 20_180_321_094_057) do
     t.string "name", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "model2_id"
     t.index "name"
   end
 

@@ -25,7 +25,7 @@ RSpec.describe 'Logger' do
   end
 
   before do
-    allow(::Logger).to receive(:new).with(STDOUT).and_return(stdout_logger)
+    allow(::Logger).to receive(:new).with($stdout).and_return(stdout_logger)
     allow(::Logger).to receive(:new).with(Pathname(log_file)).and_return(file_logger)
   end
 

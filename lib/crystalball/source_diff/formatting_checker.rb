@@ -34,7 +34,7 @@ module Crystalball
           patch.each.with_object([]) do |line, result|
             next if line.start_with?('+++', '---', '@@') # Skip meta of a patch
 
-            result << line[1..-1] if line.start_with?(sign, ' ')
+            result << line[1..] if line.start_with?(sign, ' ')
           end
         end
 

@@ -26,6 +26,11 @@ describe Crystalball::MapGenerator::AllocatedObjectsStrategy::ObjectTracker do
       expect(tracker.used_classes_during { Dummy.class }).to be_empty
     end
 
+    it 'can be reused' do
+      expect(tracker.used_classes_during { Dummy.new }).to match_array(Dummy)
+      expect(tracker.used_classes_during { Object.new }).to match_array(Object)
+    end
+
     context 'with only_of specified' do
       subject(:tracker) { described_class.new(only_of: ['Dummy']) }
 

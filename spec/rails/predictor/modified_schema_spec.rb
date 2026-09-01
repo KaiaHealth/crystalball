@@ -26,8 +26,7 @@ describe Crystalball::Rails::Predictor::ModifiedSchema do
       let(:tables_map) { {'dummies' => [model_path]} }
       let(:diff) { Crystalball::SourceDiff.new(nil) }
       let(:schema_diff) { Crystalball::SourceDiff::FileDiff.new(Git::Diff::DiffFile.new(repository, path: schema_path)) }
-      let(:repository) { Git::Base.new }
-      let(:repository_lib) { spy }
+      let(:repository) { instance_double(Git::Repository, dir: Pathname.pwd) }
       let(:schema_path) { 'db/schema.rb' }
       let(:execution_map) { instance_double('Crystalball::MapGenerator::ExecutionMap', example_groups: example_groups) }
       let(:example_groups) { {spec_file: [model_path]} }
@@ -38,9 +37,8 @@ describe Crystalball::Rails::Predictor::ModifiedSchema do
         allow(diff).to receive(:repository) { repository }
         allow(diff).to receive(:from) { 'from' }
         allow(diff).to receive(:to) { 'to' }
-        allow(repository).to receive(:lib) { repository_lib }
-        allow(repository_lib).to receive(:show).with('from', schema_path) { 'schema_before' }
-        allow(repository_lib).to receive(:show).with('to', schema_path) { 'schema_after' }
+        allow(repository).to receive(:show).with('from', schema_path) { 'schema_before' }
+        allow(repository).to receive(:show).with('to', schema_path) { 'schema_after' }
         allow(Crystalball::Rails::Helpers::SchemaDefinitionParser).to receive(:parse).with('schema_before') { {'dummies' => 1} }
         allow(Crystalball::Rails::Helpers::SchemaDefinitionParser).to receive(:parse).with('schema_after') { {'dummies' => 2} }
       end
@@ -52,8 +50,8 @@ describe Crystalball::Rails::Predictor::ModifiedSchema do
       context 'localy' do
         before do
           allow(diff).to receive('to') { nil }
-          allow(repository).to receive(:dir) { double(path: '/wrk/') }
-          allow(File).to receive(:read).with('/wrk/db/schema.rb') { 'schema_after' }
+          allow(repository).to receive(:dir) { Pathname.pwd }
+          allow(File).to receive(:read).with(File.join(Pathname.pwd, schema_path)) { 'schema_after' }
         end
 
         it 'predicts example' do

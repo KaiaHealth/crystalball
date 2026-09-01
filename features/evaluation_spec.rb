@@ -18,7 +18,7 @@ describe 'Prediction evaluation' do
   end
 
   let(:predictor) do
-    Crystalball::Predictor.new(map, Crystalball::GitRepo.open(git.dir.path)) do |predictor|
+    Crystalball::Predictor.new(map, Crystalball::GitRepo.open(git.dir)) do |predictor|
       predictor.use Crystalball::Predictor::AssociatedSpecs.new from: %r{models/(?<file>.*).rb},
                                                                 to: './spec/models/%<file>s_spec.rb'
     end

@@ -5,8 +5,9 @@ module Crystalball
     # Data object for single file in Git repo diff
     class FileDiff
       # @param [Git::DiffFile] git_diff - raw diff for a single file made by ruby-git gem
-      def initialize(git_diff)
+      def initialize(git_diff, relative_to: nil)
         @git_diff = git_diff
+        @relative_to = relative_to
       end
 
       def moved?
@@ -27,18 +28,14 @@ module Crystalball
 
       # @return relative path to file
       def relative_path
-        if File.exist?(git_diff.path)
-          git_diff.path
-        else
-          git_diff.path.split("/")[1..].join("/") # if we're in a monorepo setup, we need to remove the top level dir
-        end
+        normalize_path(git_diff.path)
       end
 
       # @return new relative path to file if file was moved
       def new_relative_path
         return relative_path unless moved?
 
-        git_diff.patch.match(/rename from.*\nrename to (.*)/)[1]
+        normalize_path(git_diff.patch.match(/rename from.*\nrename to (.*)/)[1])
       end
 
       def method_missing(method, *args, &block)
@@ -51,7 +48,14 @@ module Crystalball
 
       private
 
-      attr_reader :git_diff
+      attr_reader :git_diff, :relative_to
+
+      def normalize_path(path)
+        return path unless relative_to
+
+        repository_root = git_diff.instance_variable_get(:@base).dir
+        repository_root.join(path).relative_path_from(relative_to).to_s
+      end
     end
   end
 end

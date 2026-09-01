@@ -12,12 +12,10 @@ module Crystalball
           # Raises `LoadError` if both of them are not available.
           def require!
             NAMES.any? do |factory_gem_name|
-              begin
-                require factory_gem_name
-                true
-              rescue LoadError
-                false
-              end
+              require factory_gem_name
+              true
+            rescue LoadError
+              false
             end || (raise LoadError, "Can't load `factory_bot` or `factory_girl`")
           end
         end

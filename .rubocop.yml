@@ -1,22 +1,32 @@
 AllCops:
   DisplayCopNames: true
-  TargetRubyVersion: 2.3
+  NewCops: disable
+  TargetRubyVersion: 3.2
 Style/StringLiterals:
   Enabled: false
-Metrics/LineLength:
+Layout/LineLength:
   Enabled: false
 Metrics/BlockLength:
   Enabled: false
 Metrics/AbcSize:
   Enabled: false
+Metrics/MethodLength:
+  Max: 18
+Metrics/CyclomaticComplexity:
+  Max: 10
+Metrics/PerceivedComplexity:
+  Max: 9
 Layout/SpaceBeforeBlockBraces:
   EnforcedStyle: space
   EnforcedStyleForEmptyBraces: space
 Layout/SpaceInsideHashLiteralBraces:
   EnforcedStyle: no_space
-Naming/UncommunicativeMethodParamName:
+Naming/MethodParameterName:
   Enabled: false
-Style/MethodMissingSuper:
+Naming/VariableNumber:
+  AllowedIdentifiers:
+    - model_1
+Lint/MissingSuper:
   Enabled: false
 Lint/AmbiguousBlockAssociation:
   Enabled: false

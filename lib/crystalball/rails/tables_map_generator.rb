@@ -10,6 +10,7 @@ module Crystalball
       extend Forwardable
 
       attr_reader :configuration
+
       delegate %i[map_storage object_sources_detector] => :configuration
 
       class << self

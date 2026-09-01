@@ -20,7 +20,7 @@ RSpec::Matchers.define :include_rspec_examples do |*expected|
     contexts(expected).any? { |ec| actual.include?(ec) }
   end
 
-  def contexts(example_id) # rubocop:disable Metrics/MethodLength
+  def contexts(example_id)
     file_path, inner_path = split_example_id(example_id)
 
     contexts = [example_id, file_path]
@@ -41,7 +41,7 @@ RSpec::Matchers.define :include_rspec_examples do |*expected|
 
   def split_example_id(example_id)
     if example_id.include?('[')
-      /(.*)\[(.*)\]/.match(example_id)[1..-1]
+      /(.*)\[(.*)\]/.match(example_id)[1..]
     else
       [example_id, '']
     end
