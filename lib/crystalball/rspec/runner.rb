@@ -3,6 +3,7 @@
 require 'rspec/core'
 require 'crystalball/rspec/prediction_builder'
 require 'crystalball/rspec/filtering'
+require 'crystalball/rspec/prediction_partitioner'
 require 'crystalball/rspec/prediction_pruning'
 
 module Crystalball
@@ -69,7 +70,11 @@ module Crystalball
 
         def build_prediction
           check_map
-          prune_prediction_to_limit(prediction_builder.prediction.sort_by(&:length))
+          prediction = prune_prediction_to_limit(prediction_builder.prediction.sort_by(&:length))
+          PredictionPartitioner.new(
+            workers: config['parallel_workers'],
+            worker_index: config['parallel_worker_index']
+          ).partition(prediction)
         end
 
         def check_map
