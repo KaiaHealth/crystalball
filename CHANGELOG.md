@@ -2,6 +2,7 @@
 
 - Map storing structure reworked. Map size should be times smaller.
 - Split predicted specs between parallel RSpec workers.
+- Make execution map generation safe for parallel test workers.
 
 ## Version 0.6.0
 
