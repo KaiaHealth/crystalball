@@ -35,8 +35,7 @@ module Crystalball
     # Registers strategies and prepares metadata for execution map
     def start!
       self.map = nil
-      map_storage.clear!
-      map_storage.dump(map.metadata.to_h)
+      map_storage.prepare!(map.metadata.to_h)
 
       strategies.reverse.each(&:after_start)
       self.started = true

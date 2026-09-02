@@ -2,6 +2,7 @@
 
 require 'crystalball/logging'
 require 'crystalball/git_repo'
+require 'crystalball/parallel_test_environment'
 require 'crystalball/rspec/prediction_builder'
 require 'crystalball/rspec/runner'
 require 'crystalball/prediction'

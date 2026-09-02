@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'yaml'
+require 'crystalball/parallel_test_environment'
 
 module Crystalball
   class MapStorage
@@ -21,7 +22,10 @@ module Crystalball
 
           guard_metadata_consistency(meta)
 
-          Object.const_get(meta.first[:type]).new(metadata: meta.first, example_groups: example_groups.compact.inject(&:merge!))
+          Object.const_get(meta.first[:type]).new(
+            metadata: meta.first,
+            example_groups: merge_example_groups(example_groups)
+          )
         end
 
         private
@@ -32,12 +36,26 @@ module Crystalball
           raise NoFilesFoundError, "No files or folder exists #{path}" unless paths.any?(&:exist?)
 
           paths.map do |file|
-            metadata, *example_groups = file.read.split("---\n").reject(&:empty?).map do |yaml|
+            metadata, *example_groups = read(file).split("---\n").reject(&:empty?).map do |yaml|
               YAML.safe_load(yaml, permitted_classes: [Symbol])
             end
-            example_groups = example_groups.inject(&:merge!)
 
-            [metadata, example_groups]
+            [metadata, merge_example_groups(example_groups)]
+          end
+        end
+
+        def read(path)
+          path.open('r') do |file|
+            file.flock(File::LOCK_SH)
+            file.read
+          end
+        end
+
+        def merge_example_groups(groups)
+          groups.compact.each_with_object({}) do |group, result|
+            group.each do |example_id, files|
+              result[example_id] = (Array(result[example_id]) + Array(files)).uniq
+            end
           end
         end
 
@@ -57,12 +75,38 @@ module Crystalball
         path.delete if path.exist?
       end
 
+      # Starts a new map when the stored metadata does not describe this build.
+      def prepare!(metadata, preserve: ParallelTestEnvironment.parallel?)
+        path.dirname.mkpath
+        path.open(File::RDWR | File::CREAT, 0o644) do |file|
+          file.flock(File::LOCK_EX)
+          next if preserve && stored_metadata(file) == metadata
+
+          file.rewind
+          file.truncate(0)
+          file.write(YAML.dump(metadata))
+          file.flush
+        end
+      end
+
       # Writes data to storage file
       #
       # @param [Hash] data to write to storage file
       def dump(data)
         path.dirname.mkpath
-        path.open('a') { |f| f.write YAML.dump(data) }
+        path.open('a') do |file|
+          file.flock(File::LOCK_EX)
+          file.write(YAML.dump(data))
+          file.flush
+        end
+      end
+
+      private
+
+      def stored_metadata(file)
+        file.rewind
+        yaml = file.read.split("---\n").reject(&:empty?).first
+        YAML.safe_load(yaml.to_s, permitted_classes: [Symbol])
       end
     end
   end
