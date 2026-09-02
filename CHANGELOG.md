@@ -1,6 +1,7 @@
 ## master (not released yet)
 
 - Map storing structure reworked. Map size should be times smaller.
+- Split predicted specs between parallel RSpec workers.
 
 ## Version 0.6.0
 

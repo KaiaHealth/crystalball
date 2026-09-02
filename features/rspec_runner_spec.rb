@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 require_relative 'feature_helper'
+require 'open3'
 
 describe 'RSpec runner' do
-  subject(:execute_runner) do
-    Dir.chdir(root) { `bundle exec crystalball 2>&1`.strip }
-  end
+  subject(:execute_runner) { run_crystalball }
+
   include_context 'simple git repository'
   let(:important_class_path) { root.join('lib/important_class.rb') }
   let(:other_important_class_path) { root.join('lib/other_important_class.rb') }
@@ -28,6 +28,10 @@ describe 'RSpec runner' do
     ENV.delete('CRYSTALBALL_LOG_FILE')
   end
 
+  it 'does not run the default RSpec suite when the prediction is empty' do
+    expect(example_count(execute_runner)).to eq(0)
+  end
+
   it 'predicts examples' do
     change class1_path
 
@@ -40,6 +44,25 @@ describe 'RSpec runner' do
     is_expected.to match(/Prediction size \d+ is over the limit \(1\)/)
       .and match(/Prediction is pruned to fit the limit!/)
       .and match(/1 example, 0 failures/)
+  end
+
+  context 'when RSpec runs across multiple workers' do
+    before do
+      ENV['CRYSTALBALL_EXAMPLES_LIMIT'] = '0'
+      change class1_path, "#{class1_path.read}\nclass Class1\n  def parallel_evaluation_marker; end\nend\n"
+    end
+
+    after { ENV.delete('CRYSTALBALL_EXAMPLES_LIMIT') }
+
+    it 'runs each predicted example once across all workers' do
+      serial_count = example_count(run_crystalball)
+      worker_counts = 2.times.map do |worker_index|
+        example_count(run_crystalball('CI_NODE_TOTAL' => '2', 'CI_NODE_INDEX' => worker_index.to_s))
+      end
+
+      expect(serial_count).to be_positive
+      expect(worker_counts.sum).to eq(serial_count)
+    end
   end
 
   context 'when file, spec id, and directory are predicted' do
@@ -79,5 +102,14 @@ describe 'RSpec runner' do
         is_expected.not_to match(/does very specific stuff/) # ./spec/important_dir/important_spec.rb[1:1]
       end
     end
+  end
+
+  def run_crystalball(environment = {})
+    output, = Open3.capture2e(environment, RbConfig.ruby, '-S', 'bundle', 'exec', 'crystalball', chdir: root)
+    output.strip
+  end
+
+  def example_count(output)
+    output.scan(/(\d+) examples?, 0 failures/).last&.first.to_i
   end
 end

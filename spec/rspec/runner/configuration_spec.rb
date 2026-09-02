@@ -21,7 +21,9 @@ describe Crystalball::RSpec::Runner::Configuration do
           'runner_class' => Crystalball::RSpec::Runner,
           'runner_class_name' => 'Crystalball::RSpec::Runner',
           'log_level' => :info,
-          'log_file' => Pathname('/dev/null')
+          'log_file' => Pathname('/dev/null'),
+          'parallel_workers' => 1,
+          'parallel_worker_index' => 0
         )
     end
   end
@@ -65,6 +67,8 @@ describe Crystalball::RSpec::Runner::Configuration do
           'map_expiration_period' => 1,
           'log_level' => :info,
           'log_file' => Pathname('/dev/null'),
+          'parallel_workers' => 1,
+          'parallel_worker_index' => 0,
           'custom' => 42
         )
     end
@@ -86,6 +90,36 @@ describe Crystalball::RSpec::Runner::Configuration do
 
       it 'prioritizes ENV variable' do
         expect(config['diff_from']).to eq 'origin/master'
+      end
+    end
+
+    context 'with Knapsack worker variables' do
+      around do |example|
+        ENV['CI_NODE_TOTAL'] = '4'
+        ENV['CI_NODE_INDEX'] = '2'
+        example.call
+      ensure
+        ENV.delete('CI_NODE_TOTAL')
+        ENV.delete('CI_NODE_INDEX')
+      end
+
+      it 'detects the worker count and zero-based index' do
+        expect(config.to_h).to include('parallel_workers' => 4, 'parallel_worker_index' => 2)
+      end
+    end
+
+    context 'with parallel_tests worker variables' do
+      around do |example|
+        ENV['PARALLEL_TEST_GROUPS'] = '4'
+        ENV['TEST_ENV_NUMBER'] = '3'
+        example.call
+      ensure
+        ENV.delete('PARALLEL_TEST_GROUPS')
+        ENV.delete('TEST_ENV_NUMBER')
+      end
+
+      it 'converts the one-based process number to a zero-based index' do
+        expect(config.to_h).to include('parallel_workers' => 4, 'parallel_worker_index' => 2)
       end
     end
   end

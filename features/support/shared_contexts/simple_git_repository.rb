@@ -43,7 +43,16 @@ shared_context 'simple git repository' do
   def generate_map
     replace_spec_helper_config
     Tempfile.create('crystalball-feature-output') do |output|
-      success = system(RbConfig.ruby, '-S', 'rspec', 'spec', chdir: root, out: output, err: %i[child out])
+      success = system(
+        {'CRYSTALBALL' => 'true'},
+        RbConfig.ruby,
+        '-S',
+        'rspec',
+        'spec',
+        chdir: root,
+        out: output,
+        err: %i[child out]
+      )
       unless success
         output.rewind
         warn output.read
@@ -73,7 +82,8 @@ shared_context 'simple git repository' do
   private
 
   def replace_spec_helper_config
-    config = map_generator_config.to_s.chomp
+    generator_config = map_generator_config.to_s.chomp.lines.map { |line| "  #{line}" }.join
+    config = "if ENV['CRYSTALBALL'] == 'true'\n#{generator_config}\nend"
     replace(spec_helper, /# MAP_GENERATOR_CONFIG/, config)
     git.commit_all('Update spec helper')
   end
