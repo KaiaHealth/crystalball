@@ -44,13 +44,18 @@ shared_context 'simple git repository' do
 
   def generate_map
     replace_spec_helper_config
+    run_map_generation
+  end
+
+  def run_map_generation(*spec_paths, environment: {})
+    spec_paths = ['spec'] if spec_paths.empty?
     Tempfile.create('crystalball-feature-output') do |output|
       success = system(
-        {'CRYSTALBALL' => 'true'},
+        {'CRYSTALBALL' => 'true'}.merge(environment),
         RbConfig.ruby,
         '-S',
         'rspec',
-        'spec',
+        *spec_paths,
         chdir: root,
         out: output,
         err: %i[child out]

@@ -6,11 +6,14 @@ There are different map generator strategies that can (and should) be used toget
 
 ### Custom map file name
 
-You can customize resulting map filename with `map_storage_path` value. E.g.
+Crystalball can write one map safely when multiple test workers run at the same time. Each worker must use the same `map_storage_path`. Crystalball merges repeated example groups when it loads the map.
+
+You can customize the resulting map filename with the `map_storage_path` value. For example:
+
 ```ruby
 Crystalball::MapGenerator.start! do |config|
   #...
-  config.map_storage_path = "execution_map_#{ENV['TEST_ENV_NUMBER'].to_i}.yml"
+  config.map_storage_path = 'execution_map.yml'
 end
 ```
 
@@ -157,4 +160,3 @@ Crystalball::TablesMapGenerator.start! do |config|
   config.map_storage_path = 'my_custom_tables_map_name.yml'
 end
 ```
-

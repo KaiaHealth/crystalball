@@ -36,7 +36,7 @@ describe Crystalball::Rails::TablesMapGenerator do
   subject(:generator) { described_class.new }
   let(:configuration) { generator.configuration }
   let(:map_class) { Crystalball::Rails::TablesMap }
-  let(:storage) { instance_double('Crystalball::MapStorage::YAMLStorage', clear!: true, dump: true) }
+  let(:storage) { instance_double('Crystalball::MapStorage::YAMLStorage', prepare!: true, dump: true) }
 
   describe '#configuration' do
     describe '.commit' do
@@ -66,16 +66,11 @@ describe Crystalball::Rails::TablesMapGenerator do
     end
 
     describe '#start!' do
-      it 'wipes the map and clears storage' do
-        expect(storage).to receive :clear!
+      it 'resets the map and prepares storage for its metadata' do
+        expect(storage).to receive(:prepare!).with({type: map_class.to_s, commit: 'abc', version: 1.0})
         expect do
           subject.start!
         end.to(change { subject.map.object_id })
-      end
-
-      it 'dump new map metadata to storage' do
-        expect(storage).to receive(:dump).with({type: map_class.to_s, commit: 'abc', version: 1.0})
-        subject.start!
       end
     end
 

@@ -37,9 +37,7 @@ module Crystalball
       # Prepares metadata for execution map
       def start!
         self.map = nil
-        map_storage.clear!
-
-        map_storage.dump(map.metadata.to_h)
+        map_storage.prepare!(map.metadata.to_h)
 
         self.started = true
       end
